@@ -545,6 +545,33 @@ const scenarios = {
         ctx.release(gate);
         return snapshot(ctx);
     },
+    async sharingPollDuringOpen(options) {
+        const ctx = await build({...options, running: true});
+        await ctx.indicator.checkStatus();
+        const gate = 'api:GET:system/connections';
+        ctx.holds.add(gate);
+        const poll = ctx.indicator._pollStatusAndPending();
+        await ctx.waitHeld(gate);
+        ctx.indicator._toggle.menu.isOpen = true;
+        const fresh = ctx.indicator._refreshSharing();
+        await Promise.all([poll, fresh]);
+        ctx.release(gate);
+        return snapshot(ctx);
+    },
+    async sharingPollWithMenu(options) {
+        const ctx = await build({...options, running: true});
+        await ctx.indicator.checkStatus();
+        const toggle = ctx.indicator._toggle;
+        toggle.menu.isOpen = true;
+        await ctx.indicator._refreshSharing();
+        const opened = toggle.sharingSection.items[0];
+        await ctx.indicator._pollStatusAndPending();
+        const keptWhileOpen = toggle.sharingSection.items[0] === opened;
+        toggle.menu.isOpen = false;
+        await ctx.indicator._pollStatusAndPending();
+        const renderedWhileClosed = toggle.sharingSection.items[0] !== opened;
+        return {keptWhileOpen, renderedWhileClosed, ...snapshot(ctx)};
+    },
     async sharingLocked(options) {
         const ctx = await build({...options, running: true});
         await ctx.indicator.checkStatus();

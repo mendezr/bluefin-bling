@@ -85,6 +85,7 @@ export var ServiceIndicator = GObject.registerClass(
 			this._pollCancellable = null
 			this._pendingPromise = null
 			this._sharingEpoch = 0
+			this._renderedEpoch = -1
 			this._sharingBusy = false
 			this._shareCancellable = null
 			this._pendingScope = null
@@ -792,12 +793,15 @@ export var ServiceIndicator = GObject.registerClass(
 				this._assertCurrent(generation, cancellable)
 				this.updateStatus(true)
 				if (includePending) {
+					const epoch = this._sharingEpoch
 					try {
 						await this._checkPendingInvitations(generation, cancellable)
 						this._assertCurrent(generation, cancellable)
 					} catch {
 						this._assertCurrent(generation, cancellable)
-						this._toggle.subtitle = _('Invitations unavailable')
+						// A menu open or sharing change cancels the shared read; that is not a failure.
+						if (epoch === this._sharingEpoch)
+							this._toggle.subtitle = _('Invitations unavailable')
 					}
 				}
 				return true
@@ -851,7 +855,12 @@ export var ServiceIndicator = GObject.registerClass(
 			this._assertCurrent(generation, cancellable)
 			if (!this._sharingAllowed() || this._sharingBusy || epoch !== this._sharingEpoch)
 				return
-			this._renderSharing(state)
+			// Background polls must not rebuild an open menu and collapse its submenus;
+			// opening the menu starts a new epoch that always renders.
+			if (!this._toggle.menu.isOpen || this._renderedEpoch !== epoch) {
+				this._renderSharing(state)
+				this._renderedEpoch = epoch
+			}
 			const current = new Set(state.invitations.map(item => item.key))
 			const fresh = state.invitations.filter(item => !this._announcedPending.has(item.key))
 			this._announcedPending = current

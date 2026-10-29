@@ -60,6 +60,16 @@ class SyncthingSharingTests(unittest.TestCase):
         self.assertEqual(result["sharingMenu"][0]["actions"], ["Documents — Sharing — Stop sharing"])
         self.assertEqual(writes(result), [])
 
+    def test_opening_menu_during_poll_does_not_report_invitations_unavailable(self):
+        result = run("sharingPollDuringOpen", fixtures())
+        self.assertNotEqual(result["subtitle"], "Invitations unavailable")
+        self.assertEqual(result["sharingMenu"][0]["text"], "Laptop — Connected")
+
+    def test_background_poll_does_not_rebuild_open_menu(self):
+        result = run("sharingPollWithMenu", fixtures())
+        self.assertTrue(result["keptWhileOpen"])
+        self.assertTrue(result["renderedWhileClosed"])
+
     def test_empty_peer_list_points_to_pairing(self):
         options = fixtures()
         options["devices"] = options["devices"][:1]
