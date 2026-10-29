@@ -62,6 +62,12 @@ Use stable ASCII IDs independently of localized or relocated paths. Documents is
 
 Obtain local identity from `GET /rest/system/status` (`myID`). Folder defaults can contain **peers**, so override `devices` with the local device only. Add initial missing folders through the granular [configuration endpoints](https://docs.syncthing.net/rest/config.html). Preserve existing IDs/paths, sharing permissions, labels and paused choices. The successful provisioning marker prevents later clicks from recreating deleted presets. Unpausing a preset does not authorize sharing it with a peer; approval remains explicit.
 
+Pairing a device does not grant it access to a preset: each folder must be
+explicitly shared with that device on both computers. Do not enable automatic
+folder acceptance as a shortcut for this consent; it can re-share a folder
+after a user stopped sharing it. See the approved design and test evidence in
+[issue #82](https://github.com/projectbluefin/bluefin-bling/issues/82).
+
 ## Native migration and persistence
 
 First-use migration must preserve existing folders, not merely XDG presets. A running native daemon is inspected through the official container's supported `cli config dump-json`, an authenticated REST client with a read-only state mount. Parse only its `folders` array; the root response contains private GUI values and must never be logged. `cli config folders dump-json` is **not** supported by the pinned image.

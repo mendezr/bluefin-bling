@@ -87,6 +87,24 @@ Syncthing container. No separate panel icon or companion desktop app is needed.
 - **Protected web UI:** The built-in web page is locked with the login name and a private random password on every start, so other local accounts and sandboxed apps cannot reach it. Sharing Settings copies that password to the clipboard before opening the page; a login the user set themselves is kept.
 - **Simple controls:** Sharing Settings opens the built-in web UI; Start/Stop only leaves login startup unchanged.
 
+#### Share a folder between two computers
+
+1. Turn on Sync Folder on both computers. On each one, open its menu and select
+   **Sharing Settings**. Sign in if asked; the menu copies the password for you.
+2. Pair the computers in Sharing Settings, approving the other computer on each
+   side. Pairing alone does not share any folders.
+3. On the first computer, edit the folder you want to share, select the other
+   computer under **Sharing**, and save. On the second computer, accept the
+   folder offer or edit the matching folder and share it back with the first
+   computer. Both computers must agree before files can sync. Resume the folder
+   on each computer if it is paused.
+
+Existing files in the two folders are brought together. If both computers have
+changed the same file differently, Syncthing keeps a conflict copy; see its
+[explanation of conflicts](https://docs.syncthing.net/users/syncing.html#conflicting-changes).
+Review the folder contents before sharing: later changes and deletions can sync
+to the other computer too.
+
 Requires `podman`, `gjs` with Soup 3, and the desktop's `xdg-user-dirs` configuration. The first on request prepares
 the private configuration and user Quadlet. Install the whole extension directory,
 including its helper and container template. After replacing an already-loaded
