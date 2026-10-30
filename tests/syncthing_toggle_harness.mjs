@@ -558,6 +558,16 @@ const scenarios = {
         ctx.release(gate);
         return snapshot(ctx);
     },
+    async sharingPollFailureRecovery(options) {
+        const ctx = await build({...options, running: true});
+        await ctx.indicator.checkStatus();
+        ctx.apiErrors['system/connections'] = {status: 503};
+        await ctx.indicator._pollStatusAndPending();
+        const failed = snapshot(ctx);
+        delete ctx.apiErrors['system/connections'];
+        await ctx.indicator._pollStatusAndPending();
+        return {failed, recovered: snapshot(ctx)};
+    },
     async sharingPollWithMenu(options) {
         const ctx = await build({...options, running: true});
         await ctx.indicator.checkStatus();
@@ -567,10 +577,14 @@ const scenarios = {
         const opened = toggle.sharingSection.items[0];
         await ctx.indicator._pollStatusAndPending();
         const keptWhileOpen = toggle.sharingSection.items[0] === opened;
+        ctx.configured[0].devices.push({deviceID: 'B'});
+        await ctx.indicator._refreshSharing();
+        const reopened = snapshot(ctx);
+        const refreshed = toggle.sharingSection.items[0];
         toggle.menu.isOpen = false;
         await ctx.indicator._pollStatusAndPending();
-        const renderedWhileClosed = toggle.sharingSection.items[0] !== opened;
-        return {keptWhileOpen, renderedWhileClosed, ...snapshot(ctx)};
+        const renderedWhileClosed = toggle.sharingSection.items[0] !== refreshed;
+        return {keptWhileOpen, renderedWhileClosed, reopened, ...snapshot(ctx)};
     },
     async sharingLocked(options) {
         const ctx = await build({...options, running: true});
